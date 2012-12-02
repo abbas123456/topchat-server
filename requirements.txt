@@ -1,0 +1,6 @@
+Twisted==12.2.0
+autobahn==0.5.9
+pyOpenSSL==0.13
+pycurl==7.19.0
+wsgiref==0.1.2
+zope.interface==4.0.2
