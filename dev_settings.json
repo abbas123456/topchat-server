@@ -1,0 +1,10 @@
+{
+"WEBSOCKET_PORT":7000,
+"APPLICATION_URL_HOSTNAME":"https://localhost:8443/",
+"SSL_VERIFY_PEER":1,
+"SSL_VERIFY_HOST":0,
+"SSL_CERTIFICATE":"/home/mohammad/projects/topchat/ssl/stunnel.crt",
+"SSL_PRIVATE_KEY":"/home/mohammad/projects/topchat/ssl/stunnel.key",
+"API_USERNAME":"admin",
+"API_PASSWORD":"password"
+}
