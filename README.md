@@ -1,4 +1,4 @@
 topchat-server
 ==============
 
-Websocket Server for www.topch.at
+Autobahn WS based chat server
