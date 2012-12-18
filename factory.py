@@ -40,11 +40,9 @@ class BroadcastServerFactory(WebSocketServerFactory):
             self.broadcast(bot_message, client.room_number)
             
             room.append(client)
-            bot_message = BotMessage("Welcome {0}, to change your username temporarily " 
-            "type '!CU username', to register or login type '!RL username password'".format(
-                                                                            client.username))
+            bot_message = BotMessage("Welcome {0}".format(client.username))
             client.send_direct_message(bot_message)
-            
+
             user_joined_message = UserJoinedMessage(client.username, client.colour_rgb)
             self.broadcast(user_joined_message, client.room_number)
         else:

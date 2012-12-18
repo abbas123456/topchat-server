@@ -2,7 +2,7 @@ import re
 import random
 import json
 
-from autobahn.websocket import WebSocketServerProtocol, WebSocketProtocol
+from autobahn.websocket import WebSocketServerProtocol
 from objects import UserMessage, MessageEncoder
 
 class BroadcastServerProtocol(WebSocketServerProtocol):
@@ -20,30 +20,18 @@ class BroadcastServerProtocol(WebSocketServerProtocol):
         
         self.factory.join_room(self)
 
-    def onMessage(self, message_text, binary):
+    def onMessage(self, message, binary):
         if not binary:
-            match = re.match("!CU ([^\s-]+)", message_text, re.IGNORECASE)
-            if match is not None:
-                new_username = match.groups()[0]
-                self.factory.change_username_temporarily(self, new_username)
-                return
-            
-            match = re.match("!RL ([^\s-]+) ([^\s-]+)", message_text, re.IGNORECASE)
-            if match is not None:
-                username = match.groups()[0]
-                password = match.groups()[1]
-                self.factory.register_or_login(self, username, password)
-                return
-            
-            match = re.match("<([^\s-]+)>(.*)", message_text)
-            if match is not None:
-                recipient_username = match.groups()[0]
-                message_text = match.groups()[1]
-                self.factory.send_private_message(self, recipient_username, message_text)
-                return
-            
-            user_message = UserMessage(self.username, self.colour_rgb, message_text)
-            self.factory.broadcast(user_message, self.room_number)
+            message = json.loads(message)
+            if message['type'] == 1:
+                user_message = UserMessage(self.username, self.colour_rgb, message['text'])
+                self.factory.broadcast(user_message, self.room_number)
+            elif message['type'] == 2:
+                self.factory.change_username_temporarily(self, message['username'])
+            elif message['type'] == 3:
+                self.factory.register_or_login(self, message['username'], message['password'])
+            elif message['type'] == 4:
+                self.factory.send_private_message(self, message['recipient_username'], message['text'])
 
     def connectionLost(self, reason):
         WebSocketServerProtocol.connectionLost(self, reason)
