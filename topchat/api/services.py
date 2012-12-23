@@ -10,8 +10,8 @@ class CurlService(object):
     def get_http_response(self, relative_url):
         buffer = cStringIO.StringIO()
         curl = pycurl.Curl()
-        curl.setopt(curl.URL, url)
-        curl.setopt(c.WRITEFUNCTION, buffer.write)
+        curl.setopt(curl.URL, relative_url)
+        curl.setopt(pycurl.WRITEFUNCTION, buffer.write)
         curl.perform()
         response = buffer.getvalue()
         buffer.close()

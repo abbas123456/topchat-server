@@ -3,7 +3,7 @@ import random
 import json
 
 from autobahn.websocket import WebSocketServerProtocol
-from objects import UserMessage, MessageEncoder
+from topchat.api.messages import UserMessage, MessageEncoder
 
 class BroadcastServerProtocol(WebSocketServerProtocol):
 

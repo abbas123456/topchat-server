@@ -1,6 +1,5 @@
 from autobahn.websocket import WebSocketServerFactory, WebSocketProtocol
-from objects import BotMessage, UserJoinedMessage, UserLeftMessage, PrivateBotMessage, \
-PrivateConversationReceiveUserMessage, PrivateConversationSendUserMessage
+from topchat.api import messages
 
 class BroadcastServerFactory(WebSocketServerFactory):
 
@@ -32,21 +31,21 @@ class BroadcastServerFactory(WebSocketServerFactory):
             
         if client not in room and client.username not in self.get_all_usernames(client.room_number):
             for current_client in room:
-                user_joined_message = UserJoinedMessage(current_client.username,
-                                                        current_client.colour_rgb)
+                user_joined_message = messages.UserJoinedMessage(current_client.username,
+                                                                 current_client.colour_rgb)
                 client.send_direct_message(user_joined_message)
             
-            bot_message = BotMessage("{0} has joined the room".format(client.username))
+            bot_message = messages.BotMessage("{0} has joined the room".format(client.username))
             self.broadcast(bot_message, client.room_number)
             
             room.append(client)
-            bot_message = BotMessage("Welcome {0}".format(client.username))
+            bot_message = messages.BotMessage("Welcome {0}".format(client.username))
             client.send_direct_message(bot_message)
 
-            user_joined_message = UserJoinedMessage(client.username, client.colour_rgb)
+            user_joined_message = messages.UserJoinedMessage(client.username, client.colour_rgb)
             self.broadcast(user_joined_message, client.room_number)
         else:
-            bot_message = BotMessage("You are already part of this room")
+            bot_message = messages.BotMessage("You are already part of this room")
             client.send_direct_message(bot_message)
             
     def is_room_number_valid(self, room_number):
@@ -64,28 +63,28 @@ class BroadcastServerFactory(WebSocketServerFactory):
             room = self.rooms[client.room_number]
             if client in room:
                 room.remove(client)
-                bot_message = BotMessage("{0} has left the room".format(client.username))
+                bot_message = messages.BotMessage("{0} has left the room".format(client.username))
                 self.broadcast(bot_message, client.room_number)
-                user_left_message = UserLeftMessage(client.username)
+                user_left_message = messages.UserLeftMessage(client.username)
                 self.broadcast(user_left_message, client.room_number)
 
     def change_username_temporarily(self, client, new_username):
         if (self.can_username_be_changed(client, new_username)):
             self.change_username(client, new_username)
         else:
-            bot_message = BotMessage("{0} is already in use, please choose another username."
-                                                                        .format(new_username))
+            bot_message = messages.BotMessage("{0} is already in use, please choose another username."
+                                              .format(new_username))
             client.send_direct_message(bot_message)
 
     def change_username(self, client, new_username):
         old_username = client.username 
         client.username = new_username
-        bot_message = BotMessage("{0} is now known as {1}".format(old_username,
-                                                                  new_username))
+        bot_message = messages.BotMessage("{0} is now known as {1}".format(old_username,
+                                                                           new_username))
         self.broadcast(bot_message, client.room_number)
-        user_left_message = UserLeftMessage(old_username)
+        user_left_message = messages.UserLeftMessage(old_username)
         self.broadcast(user_left_message, client.room_number)
-        user_joined_message = UserJoinedMessage(new_username, client.colour_rgb)
+        user_joined_message = messages.UserJoinedMessage(new_username, client.colour_rgb)
         self.broadcast(user_joined_message, client.room_number)
             
     def can_username_be_changed(self, client, new_username):
@@ -106,7 +105,7 @@ class BroadcastServerFactory(WebSocketServerFactory):
             if self.authenticate_user_with_raw_password(username, password):
                 self.change_username(client, username)
             else:
-                bot_message = BotMessage("The login credentials were incorrect." 
+                bot_message = messages.BotMessage("The login credentials were incorrect." 
                                         "Please try again.")
                 client.send_direct_message(bot_message)
         else:
@@ -114,7 +113,7 @@ class BroadcastServerFactory(WebSocketServerFactory):
                 self.register_new_user(username, password)
                 self.change_username(client, username)
             except ValueError:
-                bot_message = BotMessage("We could not register or log you in")
+                bot_message = messages.BotMessage("We could not register or log you in")
                 client.send_direct_message(bot_message)
 
     def does_user_exist(self, username):
@@ -140,15 +139,15 @@ class BroadcastServerFactory(WebSocketServerFactory):
         recipient_client = self.get_client_by_username_and_room_number(
                                  recipient_username, client.room_number)
         if recipient_client is not None:
-            private_conversation_receive_user_message = PrivateConversationReceiveUserMessage(
-                                              client.username, client.colour_rgb, message_text)
+            private_conversation_receive_user_message = messages.PrivateConversationReceiveUserMessage(
+                                                       client.username, client.colour_rgb, message_text)
             recipient_client.send_direct_message(private_conversation_receive_user_message)
-            private_conversation_send_user_message = PrivateConversationSendUserMessage(
+            private_conversation_send_user_message = messages.PrivateConversationSendUserMessage(
                     client.username, client.colour_rgb, message_text, recipient_username)
             client.send_direct_message(private_conversation_send_user_message)
             
         else:
-            private_bot_message = PrivateBotMessage("Your message could not be sent to {0}, "
+            private_bot_message = messages.PrivateBotMessage("Your message could not be sent to {0}, "
             "perhaps they have left the room, or changed their username".format(
-                                         recipient_username), recipient_username)
+                                        recipient_username), recipient_username)
             client.send_direct_message(private_bot_message)

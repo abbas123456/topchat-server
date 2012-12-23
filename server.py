@@ -4,9 +4,9 @@ import json
 
 from twisted.internet import reactor, ssl
 from autobahn.websocket import listenWS
-from services import ApiService
-from factory import BroadcastServerFactory
-from protocol import BroadcastServerProtocol
+from topchat.api.services import ApiService
+from topchat.autobahn.factory import BroadcastServerFactory
+from topchat.autobahn.protocol import BroadcastServerProtocol
 
 if __name__ == '__main__':
 
