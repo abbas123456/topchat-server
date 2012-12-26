@@ -57,14 +57,15 @@ class BroadcastServerFactory(WebSocketServerFactory):
 
     def initialise_user_list(self, room, user):
         for current_client in room.users:
-            user_joined_message = messages.UserJoinedMessage(current_client.username, current_client.is_administrator, current_client.colour_rgb)
+            user_joined_message = messages.UserJoinedMessage(current_client, user)
             user.websocket.send_direct_message(user_joined_message)
 
     def broadcast_bot_welcome_message(self, user):
         bot_message = messages.BotMessage("{0} has joined the room".format(user.username))
         self.broadcast(bot_message, user.room)
-        user_joined_message = messages.UserJoinedMessage(user.username, user.is_administrator, user.colour_rgb)
-        self.broadcast(user_joined_message, user.room)
+        for current_client in user.room.users:
+            user_joined_message = messages.UserJoinedMessage(user, current_client)
+            current_client.websocket.send_direct_message(user_joined_message)
 
     def broadcast_user_left_message(self, user):
         bot_message = messages.BotMessage("{0} has left the room".format(user.username))

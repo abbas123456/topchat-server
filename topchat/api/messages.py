@@ -31,10 +31,11 @@ class UserMessage(Message):
         return regex.sub('', string)
     
 class UserJoinedMessage(Message):
-    def __init__(self, username, is_administrator, colour_rgb):
-        self.username = username
-        self.colour_rgb = colour_rgb
-        self.is_administrator = is_administrator
+    def __init__(self, user, recipent_user):
+        self.username = user.username
+        self.colour_rgb = user.colour_rgb
+        self.is_administrator = user.is_administrator
+        self.is_recipient_administator = recipent_user.is_administrator 
         super(UserJoinedMessage, self).__init__(Message.TYPE_USER_JOINED_MESSAGE, '')
 
 class UserLeftMessage(Message):
