@@ -41,6 +41,9 @@ class BroadcastServerFactory(WebSocketServerFactory):
         elif message['type'] == 2:
             print "User {0} sent a private message to {1}".format(websocket.user.username, message['recipient_username'])
             self.send_private_message(websocket.user, message['recipient_username'], message['text'])
+        elif message['type'] == 3:
+            print "User {0} has kicked user {1} from {2}".format(websocket.user.username,  message['username'], websocket.user.room.name)
+            self.kick_user(websocket.user, message['username'])
 
     def broadcast(self, message, room):
         for user in room.users:
@@ -89,3 +92,9 @@ class BroadcastServerFactory(WebSocketServerFactory):
             "perhaps they have left the room, or changed their username".format(
                                         recipient_username), recipient_username)
             user.websocket.send_direct_message(private_bot_message)
+
+    def kick_user(self, user, username_to_kick):
+        user_to_kick = user.room.get_user_by_username(username_to_kick)
+        if user.is_administrator and user_to_kick:
+            user_to_kick.websocket.disconnect()
+                
