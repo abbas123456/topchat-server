@@ -31,9 +31,10 @@ class UserMessage(Message):
         return regex.sub('', string)
     
 class UserJoinedMessage(Message):
-    def __init__(self, username, colour_rgb):
+    def __init__(self, username, is_administrator, colour_rgb):
         self.username = username
         self.colour_rgb = colour_rgb
+        self.is_administrator = is_administrator
         super(UserJoinedMessage, self).__init__(Message.TYPE_USER_JOINED_MESSAGE, '')
 
 class UserLeftMessage(Message):

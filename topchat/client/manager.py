@@ -21,7 +21,8 @@ class UserManager(Manager):
         if user_dict is None or room.get_user_by_username(user_dict['username']):
             return self.create_anonymous_user(websocket, room)
         else:
-            return models.AuthenticatedUser(user_dict['username'], websocket, room)
+            administrated_rooms = [administrated_room['room'] for administrated_room in user_dict['administrated_rooms']]
+            return models.AuthenticatedUser(user_dict['username'], websocket, room, room.id in administrated_rooms)
 
 
 class RoomManager(Manager):
