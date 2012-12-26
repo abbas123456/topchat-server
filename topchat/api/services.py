@@ -64,9 +64,11 @@ class CurlService(object):
 
 class ApiService(object):
     
+    PERSISTENT_USERNAMES = ['mobot']
+
     def __init__(self, settings):        
         self.curl_service = CurlService(settings)
-        
+
     def get_all_rooms(self):
         relative_url = "rooms/.json"
         rooms = json.loads(self.curl_service.get_http_response(relative_url))
@@ -79,12 +81,13 @@ class ApiService(object):
             return room
         else:
             return None
-    
+
     def get_user_by_token(self, token_string):
         relative_url = "user-tokens/{0}/.json".format(token_string)
         user = json.loads(self.curl_service.get_http_response(relative_url))
         relative_url = "delete-user-token/{0}/".format(token_string)
-        self.curl_service.http_delete(relative_url)
+        if user['user']['username'] not in self.PERSISTENT_USERNAMES:
+            self.curl_service.http_delete(relative_url)
         if 'user' in user:
             return user['user']
         else:

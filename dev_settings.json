@@ -6,5 +6,6 @@
 "SSL_CERTIFICATE":"/home/mohammad/projects/topchat/ssl/stunnel.crt",
 "SSL_PRIVATE_KEY":"/home/mohammad/projects/topchat/ssl/stunnel.key",
 "API_USERNAME":"admin",
-"API_PASSWORD":"password"
+"API_PASSWORD":"password",
+"BOT_TOKEN":"1c06d1d4-a8f8-4074-bd3c-11cd21927001"
 }
