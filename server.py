@@ -6,7 +6,7 @@ from twisted.internet import reactor, ssl
 from autobahn.websocket import listenWS
 from topchat.api.services import ApiService
 from topchat.autobahn.factory import BroadcastServerFactory
-from topchat.autobahn.protocol import BroadcastServerProtocol
+from topchat.autobahn.protocol import WebSocket
 
 if __name__ == '__main__':
 
@@ -26,13 +26,13 @@ if __name__ == '__main__':
         print "The file {0} does not exist".format(settings_filename)
         sys.exit()
         
-    contextFactory = ssl.DefaultOpenSSLContextFactory(json_settings['SSL_PRIVATE_KEY'], json_settings['SSL_CERTIFICATE'])
-    ServerFactory = BroadcastServerFactory
+    #contextFactory = ssl.DefaultOpenSSLContextFactory(json_settings['SSL_PRIVATE_KEY'], json_settings['SSL_CERTIFICATE'])
     api_service = ApiService(json_settings)
-    factory = ServerFactory("wss://localhost:{0}".format(json_settings['WEBSOCKET_PORT']), api_service)
+    factory = BroadcastServerFactory("ws://localhost:{0}".format(json_settings['WEBSOCKET_PORT']), api_service)
 
-    factory.protocol = BroadcastServerProtocol
+    factory.protocol = WebSocket
     factory.setProtocolOptions(allowHixie76=True)
-    listenWS(factory, contextFactory)
-
+    #listenWS(factory, contextFactory)
+    listenWS(factory)
+    
     reactor.run()

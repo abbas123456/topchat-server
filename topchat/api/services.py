@@ -10,7 +10,8 @@ class CurlService(object):
     def get_http_response(self, relative_url):
         buffer = cStringIO.StringIO()
         curl = pycurl.Curl()
-        curl.setopt(curl.URL, relative_url)
+        curl.setopt(curl.URL, "{0}{1}".format(self.settings['APPLICATION_URL_HOSTNAME'], relative_url))
+        curl.setopt(pycurl.USERPWD, "{0}:{1}".format(self.settings['API_USERNAME'], self.settings['API_PASSWORD']))
         curl.setopt(pycurl.WRITEFUNCTION, buffer.write)
         curl.perform()
         response = buffer.getvalue()
@@ -46,45 +47,39 @@ class CurlService(object):
         buffer.close()
         return response
 
+    def http_delete(self, relative_url):    
+        buffer = cStringIO.StringIO()
+        curl = pycurl.Curl()
+        curl.setopt(curl.URL, "{0}{1}".format(self.settings['APPLICATION_URL_HOSTNAME'], relative_url))
+        curl.setopt(pycurl.POSTFIELDS, "_method=DELETE")
+        curl.setopt(pycurl.USERPWD, "{0}:{1}".format(self.settings['API_USERNAME'], self.settings['API_PASSWORD']))
+        curl.perform()
+
+
 class ApiService(object):
     
     def __init__(self, settings):        
         self.curl_service = CurlService(settings)
         
+    def get_all_rooms(self):
+        relative_url = "rooms/.json"
+        rooms = json.loads(self.curl_service.get_http_response(relative_url))
+        return rooms or {}
+
     def get_room_by_room_number(self, room_number):
-        relative_url = "room/{0}/".format(room_number)
-        room = json.loads(self.curl_service.get_https_response(relative_url))
-        if 'id' in room:
+        relative_url = "rooms/{0}/.json".format(room_number)
+        room = json.loads(self.curl_service.get_http_response(relative_url))
+        if 'id' in room and room['is_active']:
             return room
         else:
             return None
     
-    def get_user_by_username(self, username):
-        relative_url = "user/{0}/".format(username)
-        user = json.loads(self.curl_service.get_https_response(relative_url))
-        if 'id' in user:
-            return user
+    def get_user_by_token(self, token_string):
+        relative_url = "user-tokens/{0}/.json".format(token_string)
+        user = json.loads(self.curl_service.get_http_response(relative_url))
+        relative_url = "delete-user-token/{0}/.json".format(token_string)
+        self.curl_service.http_delete(relative_url)
+        if 'user' in user:
+            return user['user']
         else:
             return None
-    
-    def get_user_by_username_and_raw_password(self, username, raw_password):
-        relative_url = "user/{0}/{1}/".format(username, raw_password)
-        user = json.loads(self.curl_service.get_https_response(relative_url))
-        if 'id' in user:
-            return user
-        else:
-            return None
-        
-    def get_user_by_username_and_encrypted_password(self, username, encrypted_password):
-        relative_url = "user/{0}/".format(username)
-        user = json.loads(self.curl_service.get_https_response(relative_url))
-        if 'id' in user and user['password'] == encrypted_password:
-            return user
-        else:
-            return None
-    
-    def register_user(self, username, raw_password):
-        relative_url = "users/"
-        postfields = "username={0}&password={1}".format(username, raw_password)
-        user = json.loads(self.curl_service.https_post(relative_url, postfields))
-        return user
