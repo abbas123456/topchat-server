@@ -3,7 +3,8 @@ import random
 
 class User(object):
 
-    def __init__(self, username, websocket, room, is_administrator):
+    def __init__(self, username, websocket, room, is_administrator, id=None):
+        self.id = id
         self.colour_rgb = [random.randint(0, 255) for x in range(3)]
         self.username = username
         self.websocket = websocket
@@ -17,8 +18,8 @@ class AnonymousUser(User):
 
 class AuthenticatedUser(User):
     
-    def __init__(self, username, websocket, room, is_administrator):
-        super(AuthenticatedUser, self).__init__(username, websocket, room, is_administrator)
+    def __init__(self, username, websocket, room, is_administrator, id):
+        super(AuthenticatedUser, self).__init__(username, websocket, room, is_administrator, id)
 
 
 class Room(object):

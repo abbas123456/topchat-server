@@ -32,6 +32,13 @@ class CurlService(object):
         buffer.close()
         return response
     
+    def http_post(self, relative_url, postfields):
+        curl = pycurl.Curl()
+        curl.setopt(curl.URL, "{0}{1}".format(self.settings['APPLICATION_URL_HOSTNAME'], relative_url))
+        curl.setopt(pycurl.POSTFIELDS, postfields)
+        curl.setopt(pycurl.USERPWD, "{0}:{1}".format(self.settings['API_USERNAME'], self.settings['API_PASSWORD']))
+        curl.perform()
+    
     def https_post(self, relative_url, postfields):    
         buffer = cStringIO.StringIO()
         curl = pycurl.Curl()
@@ -48,7 +55,6 @@ class CurlService(object):
         return response
 
     def http_delete(self, relative_url):    
-        buffer = cStringIO.StringIO()
         curl = pycurl.Curl()
         curl.setopt(curl.URL, "{0}{1}".format(self.settings['APPLICATION_URL_HOSTNAME'], relative_url))
         curl.setopt(pycurl.POSTFIELDS, "_method=DELETE")
@@ -77,9 +83,13 @@ class ApiService(object):
     def get_user_by_token(self, token_string):
         relative_url = "user-tokens/{0}/.json".format(token_string)
         user = json.loads(self.curl_service.get_http_response(relative_url))
-        relative_url = "delete-user-token/{0}/.json".format(token_string)
+        relative_url = "delete-user-token/{0}/".format(token_string)
         self.curl_service.http_delete(relative_url)
         if 'user' in user:
             return user['user']
         else:
             return None
+
+    def ban_user_from_room(self, user):
+        relative_url = "banned-users/"
+        self.curl_service.http_post(relative_url, "banned_user={0}&room={1}".format(user.id, user.room.id))

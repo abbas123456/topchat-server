@@ -22,7 +22,7 @@ class UserManager(Manager):
             return self.create_anonymous_user(websocket, room)
         else:
             administrated_rooms = [administrated_room['room'] for administrated_room in user_dict['administrated_rooms']]
-            return models.AuthenticatedUser(user_dict['username'], websocket, room, room.id in administrated_rooms)
+            return models.AuthenticatedUser(user_dict['username'], websocket, room, room.id in administrated_rooms, user_dict['id'])
 
 
 class RoomManager(Manager):
@@ -33,12 +33,6 @@ class RoomManager(Manager):
     def remove_user(self, room, user):
         room.users.remove(user)
 
-    def ban_user(self, room, user):
-        pass
-
-    def unban_user(self, room, user):
-        pass
-    
     def create_room(self, room_id):
         room_dict = self.api_service.get_room_by_room_number(room_id)
         if room_dict is None:

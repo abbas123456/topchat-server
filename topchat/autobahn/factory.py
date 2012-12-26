@@ -4,7 +4,7 @@ from autobahn.websocket import WebSocketServerFactory
 from topchat.api import messages
 from topchat.client.manager import UserManager, RoomManager
 from topchat.api.messages import UserMessage
-
+from topchat.client.models import AuthenticatedUser
 
 class BroadcastServerFactory(WebSocketServerFactory):
 
@@ -44,6 +44,9 @@ class BroadcastServerFactory(WebSocketServerFactory):
         elif message['type'] == 3:
             print "User {0} has kicked user {1} from {2}".format(websocket.user.username,  message['username'], websocket.user.room.name)
             self.kick_user(websocket.user, message['username'])
+        elif message['type'] == 4:
+            print "User {0} has banned user {1} from {2}".format(websocket.user.username,  message['username'], websocket.user.room.name)
+            self.ban_user(websocket.user, message['username'])
 
     def broadcast(self, message, room):
         for user in room.users:
@@ -97,4 +100,11 @@ class BroadcastServerFactory(WebSocketServerFactory):
         user_to_kick = user.room.get_user_by_username(username_to_kick)
         if user.is_administrator and user_to_kick:
             user_to_kick.websocket.disconnect()
+    
+    def ban_user(self, user, username_to_kick):
+        user_to_ban = user.room.get_user_by_username(username_to_kick)
+        if user.is_administrator and user_to_ban:
+            if isinstance(user_to_ban, AuthenticatedUser):
+                self.api_service.ban_user_from_room(user_to_ban)
+            user_to_ban.websocket.disconnect()
                 
