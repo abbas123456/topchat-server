@@ -1,4 +1,6 @@
 import json
+import subprocess
+from subprocess import CalledProcessError
 
 from autobahn.websocket import WebSocketServerFactory
 from topchat.api import messages
@@ -58,9 +60,18 @@ class BroadcastServerFactory(WebSocketServerFactory):
         else:
             room = RoomManager(self.api_service).create_room(room_id)
             print "Created room {0}".format(room.name)
+            self.add_bot_client_to_room(room_id)
             self.rooms[room_id] = room
             return room
 
+    def add_bot_client_to_room(self, room_id):
+        try:
+            subprocess.Popen(["python", "client.py", room_id],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            print "Called client process to add bot to room"
+        except CalledProcessError:
+            print "Could not add bot - {0}".format(CalledProcessError.message)
+            
     def initialise_user_list(self, room, user):
         for current_client in room.users:
             user_joined_message = messages.UserJoinedMessage(current_client, user)

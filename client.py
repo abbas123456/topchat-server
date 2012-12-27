@@ -19,7 +19,7 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
             response = kernel.respond(message_text, message['username']);
             self.sendMessage(json.dumps({'type':2, 'text': response, 'recipient_username': message['username']}))
 
-def init():
+if __name__ == '__main__':
     """
     Usage: python client.py [room_id] [settings_filename]"
     """
@@ -42,16 +42,13 @@ def init():
     
     kernel = aiml.Kernel()
     if os.path.isfile("standard.brn"):
-        kernel.bootstrap(brainFile = "standard.brn")
+        kernel.bootstrap(brainFile = "pyaiml/standard.brn")
     else:
-        kernel.bootstrap(learnFiles = "std-startup.xml", commands = "load aiml b")
-        kernel.saveBrain("standard.brn")
+        kernel.bootstrap(learnFiles = "pyaiml/std-startup.xml", commands = "load aiml b")
+        kernel.saveBrain("pyaiml/standard.brn")
     
     factory = WebSocketClientFactory('ws://localhost:{0}/{1}/{2}'.format(json_settings['WEBSOCKET_PORT'], room_id, json_settings['BOT_TOKEN']))
     factory.protocol = BroadcastClientProtocol
     connectWS(factory)
     reactor.run()
-
-if __name__ == '__main__':
-    init()
     
