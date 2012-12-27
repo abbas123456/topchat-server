@@ -1,12 +1,11 @@
 import json
 import sys
-import pycurl
-import cStringIO
+import aiml
+import os.path
 
 from twisted.internet import reactor
 from autobahn.websocket import WebSocketClientFactory,WebSocketClientProtocol,connectWS
-import aiml
-import os.path
+
 
 class BroadcastClientProtocol(WebSocketClientProtocol):
 
@@ -17,11 +16,10 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         message = json.loads(message)
         if message['type'] == 7:
             message_text = message['message']
-            response = k.respond(message_text, message['username']);
+            response = kernel.respond(message_text, message['username']);
             self.sendMessage(json.dumps({'type':2, 'text': response, 'recipient_username': message['username']}))
 
-
-if __name__ == '__main__':
+def init():
     """
     Usage: python client.py [room_id] [settings_filename]"
     """
@@ -29,12 +27,11 @@ if __name__ == '__main__':
         settings_filename = sys.argv[2]
         room_id = sys.argv[1]
     elif len(sys.argv) == 2:
-        settings_filename = '../dev_settings.json'
+        settings_filename = 'dev_settings.json'
         room_id = sys.argv[1]
     else:
-        settings_filename = '../dev_settings.json'
+        settings_filename = 'dev_settings.json'
         room_id = 1
-
     try:
         settings_file = open(settings_filename)
         json_settings = json.load(settings_file)
@@ -42,18 +39,19 @@ if __name__ == '__main__':
     except IOError:
         print "The file {0} does not exist".format(settings_filename)
         sys.exit()
-        
-    k = aiml.Kernel()
-    if os.path.isfile("standard.brn"):
-        k.bootstrap(brainFile = "standard.brn")
-    else:
-        k.bootstrap(learnFiles = "std-startup.xml", commands = "load aiml b")
-        k.saveBrain("standard.brn")
     
-    factory = WebSocketClientFactory('ws://localhost:7000/{0}/{1}'.format(room_id, json_settings['BOT_TOKEN']))
+    kernel = aiml.Kernel()
+    if os.path.isfile("standard.brn"):
+        kernel.bootstrap(brainFile = "standard.brn")
+    else:
+        kernel.bootstrap(learnFiles = "std-startup.xml", commands = "load aiml b")
+        kernel.saveBrain("standard.brn")
+    
+    factory = WebSocketClientFactory('ws://localhost:{0}/{1}/{2}'.format(json_settings['WEBSOCKET_PORT'], room_id, json_settings['BOT_TOKEN']))
     factory.protocol = BroadcastClientProtocol
     connectWS(factory)
-
     reactor.run()
 
+if __name__ == '__main__':
+    init()
     
