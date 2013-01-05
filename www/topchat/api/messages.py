@@ -10,6 +10,8 @@ class Message(object):
     TYPE_PRIVATE_BOT_MESSAGE = 5
     TYPE_PRIVATE_CONVERSATION_SEND_USER_MESSAGE = 6
     TYPE_PRIVATE_CONVERSATION_RECEIVE_USER_MESSAGE = 7
+    TYPE_USER_BLOCKED_MESSAGE = 8
+    TYPE_USER_UNBLOCKED_MESSAGE = 9
         
     def __init__(self, type, message):
         self.type = type
@@ -63,6 +65,20 @@ class PrivateConversationReceiveUserMessage(Message):
         self.colour_rgb = colour_rgb
         super(PrivateConversationReceiveUserMessage, self).__init__(
                         Message.TYPE_PRIVATE_CONVERSATION_RECEIVE_USER_MESSAGE, message_text)
+
+class UserBlockedMessage(Message):
+    def __init__(self, username):
+        self.username = username
+        super(UserBlockedMessage, self).__init__(
+                         Message.TYPE_USER_BLOCKED_MESSAGE, '')
+
+
+class UserUnblockedMessage(Message):
+    def __init__(self, username):
+        self.username = username
+        super(UserUnblockedMessage, self).__init__(
+                         Message.TYPE_USER_UNBLOCKED_MESSAGE, '')
+
 
 class MessageEncoder(json.JSONEncoder):
     

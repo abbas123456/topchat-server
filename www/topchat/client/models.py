@@ -10,6 +10,8 @@ class User(object):
         self.websocket = websocket
         self.room = room
         self.is_administrator = is_administrator
+        self.blocked_users = set()
+
 
 class AnonymousUser(User):
     def __init__(self, username, websocket, room):

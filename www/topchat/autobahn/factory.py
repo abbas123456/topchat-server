@@ -41,7 +41,7 @@ class BroadcastServerFactory(WebSocketServerFactory):
         if message['type'] == 1:
             print "User {0} sent a message in room {1}".format(websocket.user.username, websocket.user.room.name)
             user_message = UserMessage(websocket.user.username, websocket.user.colour_rgb, message['text'])
-            self.broadcast(user_message, websocket.user.room)
+            self.broadcast(user_message, websocket.user)
         elif message['type'] == 2:
             print "User {0} sent a private message to {1}".format(websocket.user.username, message['recipient_username'])
             self.send_private_message(websocket.user, message['recipient_username'], message['text'])
@@ -51,10 +51,19 @@ class BroadcastServerFactory(WebSocketServerFactory):
         elif message['type'] == 4:
             print "User {0} has banned user {1} from {2}".format(websocket.user.username,  message['username'], websocket.user.room.name)
             self.ban_user(websocket.user, message['username'])
+        elif message['type'] == 5:
+            print "User {0} has blocked user {1} in room {2}".format(websocket.user.username,  message['username'], websocket.user.room.name)
+            self.block_user(websocket.user, message['username'])
+        elif message['type'] == 6:
+            print "User {0} has unblocked user {1} in user {2}".format(websocket.user.username,  message['username'], websocket.user.room.name)
+            self.unblock_user(websocket.user, message['username'])
 
-    def broadcast(self, message, room):
-        for user in room.users:
-            user.websocket.send_direct_message(message)
+    def broadcast(self, message, user):
+        for recipient in user.room.users:
+            if isinstance(message, UserMessage) and user in recipient.blocked_users:
+                pass
+            else:
+                recipient.websocket.send_direct_message(message)
 
     def get_or_create_room(self, room_id):
         if room_id in self.rooms:
@@ -81,20 +90,20 @@ class BroadcastServerFactory(WebSocketServerFactory):
 
     def broadcast_bot_welcome_message(self, user):
         bot_message = messages.BotMessage("{0} has joined the room".format(user.username))
-        self.broadcast(bot_message, user.room)
+        self.broadcast(bot_message, user)
         for current_client in user.room.users:
             user_joined_message = messages.UserJoinedMessage(user, current_client)
             current_client.websocket.send_direct_message(user_joined_message)
 
     def broadcast_user_left_message(self, user):
         bot_message = messages.BotMessage("{0} has left the room".format(user.username))
-        self.broadcast(bot_message, user.room)
+        self.broadcast(bot_message, user)
         user_left_message = messages.UserLeftMessage(user.username)
-        self.broadcast(user_left_message, user.room)
+        self.broadcast(user_left_message, user)
 
     def send_private_message(self, user, recipient_username, message_text):
         recipient = user.room.get_user_by_username(recipient_username)
-        if recipient is not None:
+        if recipient is not None and user not in recipient.blocked_users:
             private_conversation_receive_user_message = messages.PrivateConversationReceiveUserMessage(
                                                        user.username, user.colour_rgb, message_text)
             recipient.websocket.send_direct_message(private_conversation_receive_user_message)
@@ -105,7 +114,7 @@ class BroadcastServerFactory(WebSocketServerFactory):
 
         else:
             private_bot_message = messages.PrivateBotMessage("Your message could not be sent to {0}, "
-            "perhaps they have left the room, or changed their username".format(
+            "perhaps they have left the room, or blocked you".format(
                                         recipient_username), recipient_username)
             user.websocket.send_direct_message(private_bot_message)
 
@@ -114,10 +123,21 @@ class BroadcastServerFactory(WebSocketServerFactory):
         if user.is_administrator and user_to_kick:
             user_to_kick.websocket.disconnect()
     
-    def ban_user(self, user, username_to_kick):
-        user_to_ban = user.room.get_user_by_username(username_to_kick)
+    def ban_user(self, user, username_to_ban):
+        user_to_ban = user.room.get_user_by_username(username_to_ban)
         if user.is_administrator and user_to_ban:
             if isinstance(user_to_ban, AuthenticatedUser):
                 self.api_service.ban_user_from_room(user_to_ban)
             user_to_ban.websocket.disconnect()
-                
+    
+    def block_user(self, user, username_to_block):
+        user_to_block = user.room.get_user_by_username(username_to_block)
+        if user_to_block:
+            user.blocked_users.add(user_to_block)
+            user.websocket.send_direct_message(messages.UserBlockedMessage(username_to_block))
+
+    def unblock_user(self, user, username_to_unblock):
+        user_to_unblock = user.room.get_user_by_username(username_to_unblock)
+        if user_to_unblock:
+            user.blocked_users.remove(user_to_unblock)
+            user.websocket.send_direct_message(messages.UserUnblockedMessage(username_to_unblock))
