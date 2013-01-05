@@ -19,6 +19,9 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
             response = kernel.respond(message_text, message['username']);
             self.sendMessage(json.dumps({'type':2, 'text': response, 'recipient_username': message['username']}))
 
+    def onClose(self, wasClean, code, reason):
+        connectWS(factory, ssl.ClientContextFactory())
+
 if __name__ == '__main__':
     """
     Usage: python client.py [room_id] [environment]"
