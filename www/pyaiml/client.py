@@ -3,7 +3,7 @@ import sys
 import aiml
 import os.path
 
-from twisted.internet import reactor
+from twisted.internet import reactor, ssl
 from autobahn.websocket import WebSocketClientFactory,WebSocketClientProtocol,connectWS
 
 
@@ -21,34 +21,38 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
 
 if __name__ == '__main__':
     """
-    Usage: python client.py [room_id] [settings_filename]"
+    Usage: python client.py [room_id] [environment]"
     """
     if len(sys.argv) == 3:
-        settings_filename = sys.argv[2]
+        environment = sys.argv[2]
         room_id = sys.argv[1]
     elif len(sys.argv) == 2:
-        settings_filename = 'dev_settings.json'
+        environment = 'local'
         room_id = sys.argv[1]
     else:
-        settings_filename = 'dev_settings.json'
+        environment = 'local'
         room_id = 1
     try:
-        settings_file = open(settings_filename)
+        settings_file = open("../settings/{0}.conf".format(environment))
         json_settings = json.load(settings_file)
         settings_file.close() 
     except IOError:
-        print "The file {0} does not exist".format(settings_filename)
+        print "The file {0}.conf does not exist".format(environment)
         sys.exit()
     
     kernel = aiml.Kernel()
     if os.path.isfile("standard.brn"):
-        kernel.bootstrap(brainFile = "pyaiml/standard.brn")
+        kernel.bootstrap(brainFile = "standard.brn")
     else:
-        kernel.bootstrap(learnFiles = "pyaiml/std-startup.xml", commands = "load aiml b")
-        kernel.saveBrain("pyaiml/standard.brn")
+        kernel.bootstrap(learnFiles = "std-startup.xml", commands = "load aiml b")
+        kernel.saveBrain("standard.brn")
     
-    factory = WebSocketClientFactory('ws://localhost:{0}/{1}/{2}'.format(json_settings['WEBSOCKET_PORT'], room_id, json_settings['BOT_TOKEN']))
+    factory = WebSocketClientFactory("{0}://{1}:{2}/{3}/{4}".format(json_settings['WEBSOCKET_SCHEME'],
+                                     json_settings['WEBSOCKET_DOMAIN'],
+                                     json_settings['WEBSOCKET_PORT'],
+                                     room_id,
+                                     json_settings['BOT_TOKEN']))
     factory.protocol = BroadcastClientProtocol
-    connectWS(factory)
+    connectWS(factory, ssl.ClientContextFactory())
     reactor.run()
     

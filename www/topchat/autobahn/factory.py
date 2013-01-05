@@ -1,5 +1,7 @@
 import json
 import subprocess
+import os
+
 from subprocess import CalledProcessError
 
 from autobahn.websocket import WebSocketServerFactory
@@ -66,8 +68,8 @@ class BroadcastServerFactory(WebSocketServerFactory):
 
     def add_bot_client_to_room(self, room_id):
         try:
-            subprocess.Popen(["python", "client.py", room_id],
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            subprocess.Popen(["python", "client.py", room_id, os.environ['environment']],
+                             cwd="pyaiml")
             print "Called client process to add bot to room"
         except CalledProcessError:
             print "Could not add bot - {0}".format(CalledProcessError.message)

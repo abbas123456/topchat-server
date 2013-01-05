@@ -1,5 +1,8 @@
+PyAIML==0.8.6
 Twisted==12.2.0
 autobahn==0.5.9
+ipdb==0.7
+ipython==0.13.1
 pyOpenSSL==0.13
 pycurl==7.19.0
 wsgiref==0.1.2
