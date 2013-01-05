@@ -21,8 +21,8 @@ def deploy():
     set_production_symlinks()
     print(green("Applying permissions"))
     apply_production_permissions()
-    print(green("Reloading apache"))
-    reload_apache()
+    print(green("Restarting supervisord"))
+    restart_supervisord_program()
 
 
 def archive(archive_file, reference):
@@ -51,13 +51,12 @@ def unpack(archive_path, temp_folder='/tmp/build_temp'):
 
 
 def set_production_symlinks():
-    sudo('if [ -h %(AppRoot)s/builds/live/production ]; then unlink %(AppRoot)s/builds/live/production; fi' % env)
-    sudo('ln -sv %(AppRoot)s/builds/live/%(tag)s %(AppRoot)s/builds/live/production' % env)
-
+    sudo('if [ -h %(AppRoot)s/builds/live ]; then unlink %(AppRoot)s/builds/live; fi' % env)
+    sudo('ln -sv %(AppRoot)s/builds/%(tag)s %(AppRoot)s/builds/live' % env)
+    sudo('ln -sv %(AppRoot)s/settings/production.conf %(AppRoot)s/builds/%(tag)s/www/settings/production.conf' % env)
 
 def apply_production_permissions():
     sudo('chown -R www-data:www-data %(BuildRoot)s' % env)
 
-
-def reload_apache():
-    sudo('/etc/init.d/apache2 reload')
+def restart_supervisord_program():
+    sudo('supervisorctl restart topchat-server')

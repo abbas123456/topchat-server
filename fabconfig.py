@@ -13,8 +13,8 @@ def live():
 	env.repo = 'origin'
 
 	"Application Paths"
-	env.AppRoot = '/var/www/topchat'
+	env.AppRoot = '/var/www/topchat-server'
 
 	"Build Settings"
 	env.BuildName = 'prod'
-	env.BuildRoot = '%(AppRoot)s/builds/live/%(tag)s' % env
+	env.BuildRoot = '%(AppRoot)s/builds/%(tag)s' % env
