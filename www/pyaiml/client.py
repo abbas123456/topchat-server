@@ -44,11 +44,11 @@ if __name__ == '__main__':
         sys.exit()
     
     kernel = aiml.Kernel()
-    if os.path.isfile("standard.brn"):
-        kernel.bootstrap(brainFile = "standard.brn")
+    if os.path.isfile("/tmp/standard.brn"):
+        kernel.bootstrap(brainFile = "/tmp/standard.brn")
     else:
         kernel.bootstrap(learnFiles = "std-startup.xml", commands = "load aiml b")
-        kernel.saveBrain("standard.brn")
+        kernel.saveBrain("/tmp/standard.brn")
     
     factory = WebSocketClientFactory("{0}://{1}:{2}/{3}/{4}".format(json_settings['WEBSOCKET_SCHEME'],
                                      json_settings['WEBSOCKET_DOMAIN'],
