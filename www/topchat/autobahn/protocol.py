@@ -18,7 +18,7 @@ class WebSocket(WebSocketServerProtocol):
         self.factory.handle_request_end(self)
 
     def disconnect(self):
-        WebSocketServerProtocol.dropConnection(self)
+        WebSocketServerProtocol.dropConnection(self, abort=True)
         
     def send_direct_message(self, message):
         message_json_string = json.dumps(message, cls=MessageEncoder) 
